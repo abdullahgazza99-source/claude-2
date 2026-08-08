@@ -56,6 +56,19 @@
       color: var(--pos-text-main);
       overflow-x: hidden;
       transition: background 0.2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Fix untuk input di Android */
+    input, textarea, select {
+      font-size: 16px !important;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    
+    /* Prevent zoom on focus */
+    input:focus, textarea:focus, select:focus {
+      font-size: 16px !important;
     }
 
     /* ===== SIDEBAR ===== */
@@ -128,6 +141,8 @@
       transition: all 0.15s ease-in-out;
       position: relative;
       overflow: hidden;
+      cursor: pointer;
+      touch-action: manipulation;
     }
     .btn-interactive:active {
       transform: scale(0.94) translateY(2px);
@@ -161,6 +176,7 @@
       height: 100%;
       display: flex;
       flex-direction: column;
+      touch-action: manipulation;
     }
     .product-card:hover {
       transform: translateY(-6px);
@@ -233,6 +249,7 @@
       min-height: 160px;
       overflow-y: auto;
       scrollbar-width: thin;
+      -webkit-overflow-scrolling: touch;
     }
     @media (max-width: 576px) {
       .cart-items-container { max-height: 38vh; }
@@ -271,6 +288,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      touch-action: manipulation;
     }
     .upload-area:hover {
       border-color: var(--pos-primary);
@@ -341,6 +359,7 @@
       transition: color 0.2s;
       padding: 4px 12px;
       border-radius: 8px;
+      touch-action: manipulation;
     }
     .mobile-bottom-nav .nav-item-btn i {
       font-size: 1.5rem;
@@ -430,6 +449,7 @@
       gap: 10px;
       font-weight: 700;
       transition: transform 0.15s ease;
+      touch-action: manipulation;
     }
     #pos-cart-fab:hover { transform: scale(1.04); color: #fff; }
     #pos-cart-fab:active { transform: scale(0.96); }
@@ -518,6 +538,7 @@
       overflow-y: auto;
       flex-grow: 1;
       min-height: 0 !important;
+      -webkit-overflow-scrolling: touch;
     }
     #pos-grand-total-val {
       font-size: 1.15rem !important;
@@ -548,6 +569,23 @@
     @media (min-width: 992px) {
       #offline-indicator { bottom: 30px; }
     }
+
+    /* Android input fixes */
+    input[type="text"],
+    input[type="number"],
+    input[type="password"],
+    input[type="email"],
+    textarea,
+    select {
+      -webkit-user-select: text !important;
+      user-select: text !important;
+      touch-action: manipulation !important;
+    }
+    
+    /* Prevent double-tap zoom on buttons */
+    button, .btn, .product-card, .nav-item-btn, .sidebar-nav-link {
+      touch-action: manipulation;
+    }
   </style>
 </head>
 <body>
@@ -570,7 +608,7 @@
       <h4 id="login-app-name" class="fw-bold mb-1">Kasir Genius Semua UMKM</h4>
       <p id="login-app-tagline" class="text-muted small">Sistem Kasir Terlengkap Semua Jenis UMKM</p>
     </div>
-    <form onsubmit="AuthService.handleLogin(event)">
+    <form onsubmit="AuthService.handleLogin(event)" id="login-form">
       <div class="mb-3">
         <label class="form-label fw-semibold small">Hak Akses / Peran</label>
         <select id="login-role" class="form-select">
@@ -580,7 +618,7 @@
       </div>
       <div class="mb-3">
         <label class="form-label fw-semibold small">Password / PIN Masuk</label>
-        <input type="password" id="login-password" class="form-control" placeholder="Masukkan password..." required>
+        <input type="password" id="login-password" class="form-control" placeholder="Masukkan password..." required autocomplete="off">
       </div>
       <div id="login-error" class="alert alert-danger py-2 small d-none mb-3">
         <i class="bi bi-exclamation-circle me-1"></i> Password salah.
@@ -617,7 +655,6 @@
             <i class="bi bi-person-fill"></i>
           </div>
           <div>
-           
             <small class="text-success d-flex align-items-center gap-1" style="font-size:11px;">
               <span class=""></span>Wa Admin 0881012556324
             </small>
@@ -638,7 +675,7 @@
         <button class="btn btn-sm btn-light d-lg-none border btn-interactive" onclick="UIController.toggleSidebar()">
           <i class="bi bi-list fs-5"></i>
         </button>
-        <h5 id="page-title" class="mb-0 fw-bold">POS Kasir</h5>
+        <h5 id="page-title" class="mb-0 fw-bold">Kasir</h5>
       </div>
       <div class="d-flex align-items-center gap-2">
         <span id="sync-status" class="badge bg-success d-none d-md-inline">
@@ -713,19 +750,19 @@
                 <div class="col-md-5">
                   <div class="input-group input-group-sm">
                     <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
-                    <input type="text" id="pos-search-input" class="form-control border-start-0 bg-light" placeholder="Cari Produk..." onkeyup="POSEngine.handleSearchDebounced(event)">
+                    <input type="text" id="pos-search-input" class="form-control border-start-0 bg-light" placeholder="Cari Produk..." autocomplete="off" inputmode="text">
                   </div>
                 </div>
                 <div class="col-md-4">
                   <div class="input-group input-group-sm">
-                    <button class="btn btn-outline-primary input-group-text border-end-0 btn-interactive" onclick="BarcodeScanner.openScanner()" title="Scan Barcode Kamera">
+                    <button class="btn btn-outline-primary input-group-text border-end-0 btn-interactive" onclick="BarcodeScanner.openScanner()" title="Scan Barcode Kamera" type="button">
                         <i class="bi bi-qr-code-scan"></i>
                     </button>
-                    <input type="text" id="pos-barcode-input" class="form-control border-start-0 bg-light" placeholder="Barcode / Scan..." onkeypress="POSEngine.handleBarcodeScan(event)">
+                    <input type="text" id="pos-barcode-input" class="form-control border-start-0 bg-light" placeholder="Barcode / Scan..." autocomplete="off" inputmode="numeric">
                   </div>
                 </div>
                 <div class="col-md-3 text-end">
-                  <button class="btn btn-sm btn-outline-secondary w-100 btn-interactive" onclick="POSEngine.showShortcutsModal()">
+                  <button class="btn btn-sm btn-outline-secondary w-100 btn-interactive" onclick="POSEngine.showShortcutsModal()" type="button">
                     <i class="bi bi-keyboard me-1"></i> Pintasan
                   </button>
                 </div>
@@ -752,14 +789,14 @@
             <h4 class="fw-bold mb-1"><i class="bi bi-box-seam text-primary me-2"></i>Katalog Produk & Stok</h4>
             <p class="text-muted small mb-0">Kelola master data produk, harga, dan stok.</p>
           </div>
-          <button class="btn pos-btn-primary btn-interactive" onclick="ProductManager.openModal()">
+          <button class="btn pos-btn-primary btn-interactive" onclick="ProductManager.openModal()" type="button">
             <i class="bi bi-plus-lg me-1"></i> Tambah Produk
           </button>
         </div>
         <div class="pos-card p-3 mb-3">
           <div class="row g-2">
             <div class="col-md-6">
-              <input type="text" id="prod-manage-search" class="form-control" placeholder="Cari nama / SKU / barcode..." onkeyup="ProductManager.renderTable()">
+              <input type="text" id="prod-manage-search" class="form-control" placeholder="Cari nama / SKU / barcode..." autocomplete="off" inputmode="text">
             </div>
             <div class="col-md-6 text-end">
               <span class="text-muted small">Total Produk: <strong id="prod-count-badge">0</strong> Item</span>
@@ -793,7 +830,7 @@
             <h4 class="fw-bold mb-1"><i class="bi bi-tags text-primary me-2"></i>Kategori Produk</h4>
             <p class="text-muted small mb-0">Pengelompokan kategori barang dan jasa.</p>
           </div>
-          <button class="btn pos-btn-primary btn-interactive" onclick="CategoryManager.openModal()">
+          <button class="btn pos-btn-primary btn-interactive" onclick="CategoryManager.openModal()" type="button">
             <i class="bi bi-plus-lg me-1"></i> Tambah Kategori
           </button>
         </div>
@@ -807,7 +844,7 @@
             <h4 class="fw-bold mb-1"><i class="bi bi-people text-primary me-2"></i>Data Pelanggan</h4>
             <p class="text-muted small mb-0">Database pelanggan dan kontak.</p>
           </div>
-          <button class="btn pos-btn-primary btn-interactive" onclick="CustomerManager.openModal()">
+          <button class="btn pos-btn-primary btn-interactive" onclick="CustomerManager.openModal()" type="button">
             <i class="bi bi-person-plus me-1"></i> Tambah Pelanggan
           </button>
         </div>
@@ -836,7 +873,7 @@
             <h4 class="fw-bold mb-1"><i class="bi bi-truck text-primary me-2"></i>Supplier & Pemasok</h4>
             <p class="text-muted small mb-0">Database distributor dan vendor.</p>
           </div>
-          <button class="btn pos-btn-primary btn-interactive" onclick="SupplierManager.openModal()">
+          <button class="btn pos-btn-primary btn-interactive" onclick="SupplierManager.openModal()" type="button">
             <i class="bi bi-plus-lg me-1"></i> Tambah Supplier
           </button>
         </div>
@@ -865,7 +902,7 @@
             <h4 class="fw-bold mb-1"><i class="bi bi-wallet2 text-primary me-2"></i>Pengeluaran Operasional</h4>
             <p class="text-muted small mb-0">Catat beban operasional.</p>
           </div>
-          <button class="btn pos-btn-primary btn-interactive" onclick="ExpenseManager.openModal()">
+          <button class="btn pos-btn-primary btn-interactive" onclick="ExpenseManager.openModal()" type="button">
             <i class="bi bi-plus-lg me-1"></i> Catat Pengeluaran
           </button>
         </div>
@@ -895,10 +932,10 @@
             <p class="text-muted small mb-0">Rekapitulasi omset dan histori.</p>
           </div>
           <div class="d-flex gap-2">
-            <button class="btn btn-outline-success btn-sm btn-interactive" onclick="ReportEngine.exportToExcel()">
+            <button class="btn btn-outline-success btn-sm btn-interactive" onclick="ReportEngine.exportToExcel()" type="button">
               <i class="bi bi-file-earmark-excel me-1"></i> Export Excel
             </button>
-            <button class="btn btn-outline-primary btn-sm btn-interactive" onclick="ReportEngine.renderReports()">
+            <button class="btn btn-outline-primary btn-sm btn-interactive" onclick="ReportEngine.renderReports()" type="button">
               <i class="bi bi-arrow-clockwise me-1"></i> Refresh
             </button>
           </div>
@@ -961,9 +998,9 @@
           <div class="d-flex align-items-center gap-2">
             <div class="input-group">
               <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
-              <input type="text" id="store-search-input" class="form-control" placeholder="Cari modul..." onkeyup="ModuleManager.filterStore()">
+              <input type="text" id="store-search-input" class="form-control" placeholder="Cari modul..." autocomplete="off" inputmode="text">
             </div>
-            <select id="store-category-select" class="form-select w-auto" onchange="ModuleManager.filterStore()">
+            <select id="store-category-select" class="form-select w-auto">
               <option value="ALL">Semua</option>
               <option value="Jasa & Servis">Jasa & Servis</option>
               <option value="Retail & Dagang">Retail & Dagang</option>
@@ -981,19 +1018,19 @@
           <div class="col-md-3">
             <div class="pos-card p-2 sticky-top" style="top:80px;">
               <div class="nav flex-column nav-pills" id="settings-pills-tab">
-                <button class="nav-link text-start active btn-interactive" onclick="SettingsController.switchSubTab('profil', this)">
+                <button class="nav-link text-start active btn-interactive" onclick="SettingsController.switchSubTab('profil', this)" type="button">
                   <i class="bi bi-building me-2"></i> Profil & faktur
                 </button>
-                <button class="nav-link text-start btn-interactive" onclick="SettingsController.switchSubTab('branding', this)">
+                <button class="nav-link text-start btn-interactive" onclick="SettingsController.switchSubTab('branding', this)" type="button">
                   <i class="bi bi-palette me-2"></i> Warna & Logo
                 </button>
-                <button class="nav-link text-start btn-interactive" onclick="SettingsController.switchSubTab('keamanan', this)">
+                <button class="nav-link text-start btn-interactive" onclick="SettingsController.switchSubTab('keamanan', this)" type="button">
                   <i class="bi bi-shield-lock me-2"></i> Akun
                 </button>
-                <button class="nav-link text-start btn-interactive" onclick="SettingsController.switchSubTab('gsheet', this)">
+                <button class="nav-link text-start btn-interactive" onclick="SettingsController.switchSubTab('gsheet', this)" type="button">
                   <i class="bi bi-file-earmark-spreadsheet me-2"></i> Google Sheets
                 </button>
-                <button class="nav-link text-start btn-interactive" onclick="SettingsController.switchSubTab('backup', this)">
+                <button class="nav-link text-start btn-interactive" onclick="SettingsController.switchSubTab('backup', this)" type="button">
                   <i class="bi bi-database-down me-2"></i> Backup/Reset
                 </button>
               </div>
@@ -1008,23 +1045,23 @@
                   <div class="row g-3">
                     <div class="col-md-6">
                       <label class="form-label fw-semibold">Nama Usaha</label>
-                      <input type="text" id="set-business-name" class="form-control" required>
+                      <input type="text" id="set-business-name" class="form-control" required autocomplete="off" inputmode="text">
                     </div>
                     <div class="col-md-6">
                       <label class="form-label fw-semibold">Tagline</label>
-                      <input type="text" id="set-business-tagline" class="form-control">
+                      <input type="text" id="set-business-tagline" class="form-control" autocomplete="off" inputmode="text">
                     </div>
                     <div class="col-md-6">
                       <label class="form-label fw-semibold">Nama Pemilik</label>
-                      <input type="text" id="set-owner-name" class="form-control">
+                      <input type="text" id="set-owner-name" class="form-control" autocomplete="off" inputmode="text">
                     </div>
                     <div class="col-md-6">
                       <label class="form-label fw-semibold">Telepon / WA</label>
-                      <input type="text" id="set-phone" class="form-control">
+                      <input type="text" id="set-phone" class="form-control" autocomplete="off" inputmode="tel">
                     </div>
                     <div class="col-md-12">
                       <label class="form-label fw-semibold">Email</label>
-                      <input type="email" id="set-email" class="form-control">
+                      <input type="email" id="set-email" class="form-control" autocomplete="off" inputmode="email">
                     </div>
                     <div class="col-md-12">
                       <label class="form-label fw-semibold">Alamat</label>
@@ -1049,9 +1086,9 @@
                       <i class="bi bi-image text-muted fs-3"></i>
                     </div>
                     <div class="flex-grow-1">
-                      <input type="file" id="branding-logo-input" class="form-control form-control-sm mb-2" accept="image/*" onchange="BrandingController.handleLogoUpload(this)">
+                      <input type="file" id="branding-logo-input" class="form-control form-control-sm mb-2" accept="image/*">
                       <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-outline-danger btn-interactive" onclick="BrandingController.removeLogo()">
+                        <button class="btn btn-sm btn-outline-danger btn-interactive" onclick="BrandingController.removeLogo()" type="button">
                           <i class="bi bi-trash me-1"></i> Hapus Logo
                         </button>
                       </div>
@@ -1100,7 +1137,7 @@
                   <form onsubmit="SettingsController.changeAdminPass(event)" class="row g-2 align-items-end">
                     <div class="col-md-8">
                       <label class="form-label small">Password Baru</label>
-                      <input type="password" id="set-admin-pass" class="form-control" required>
+                      <input type="password" id="set-admin-pass" class="form-control" required autocomplete="off">
                     </div>
                     <div class="col-md-4">
                       <button type="submit" class="btn pos-btn-primary w-100 btn-interactive">Update</button>
@@ -1115,7 +1152,7 @@
                 <form onsubmit="GoogleSheetsService.saveConfig(event)">
                   <div class="mb-3">
                     <label class="form-label fw-semibold">Client ID <span class="text-danger">*</span></label>
-                    <input type="text" id="set-google-client-id" class="form-control font-monospace" required>
+                    <input type="text" id="set-google-client-id" class="form-control font-monospace" required autocomplete="off" inputmode="text">
                   </div>
                   <div class="d-flex justify-content-end mb-3">
                     <button type="submit" class="btn btn-outline-primary btn-sm btn-interactive">
@@ -1131,13 +1168,13 @@
                     <div id="gsheet-link-wrap" class="mt-1"></div>
                   </div>
                   <div class="d-flex gap-2">
-                    <button class="btn btn-primary btn-sm btn-interactive" id="btn-gsheet-connect" onclick="GoogleSheetsService.connect()">
+                    <button class="btn btn-primary btn-sm btn-interactive" id="btn-gsheet-connect" onclick="GoogleSheetsService.connect()" type="button">
                       <i class="bi bi-google me-1"></i> Hubungkan
                     </button>
-                    <button class="btn btn-success btn-sm d-none btn-interactive" id="btn-gsheet-sync" onclick="GoogleSheetsService.syncSales()">
+                    <button class="btn btn-success btn-sm d-none btn-interactive" id="btn-gsheet-sync" onclick="GoogleSheetsService.syncSales()" type="button">
                       <i class="bi bi-cloud-arrow-up me-1"></i> Sinkron
                     </button>
-                    <button class="btn btn-outline-danger btn-sm d-none btn-interactive" id="btn-gsheet-disconnect" onclick="GoogleSheetsService.disconnect()">
+                    <button class="btn btn-outline-danger btn-sm d-none btn-interactive" id="btn-gsheet-disconnect" onclick="GoogleSheetsService.disconnect()" type="button">
                       <i class="bi bi-box-arrow-right me-1"></i> Putus
                     </button>
                   </div>
@@ -1154,7 +1191,7 @@
                     <div class="border p-3 rounded h-100">
                       <h6 class="fw-bold"><i class="bi bi-download me-1 text-success"></i> Export Data (.json)</h6>
                       <p class="small text-muted">Unduh seluruh data ke file JSON.</p>
-                      <button class="btn btn-outline-success btn-sm w-100 btn-interactive" onclick="SettingsController.exportBackup()">
+                      <button class="btn btn-outline-success btn-sm w-100 btn-interactive" onclick="SettingsController.exportBackup()" type="button">
                         Download Backup
                       </button>
                     </div>
@@ -1164,7 +1201,7 @@
                       <h6 class="fw-bold"><i class="bi bi-upload me-1 text-primary"></i> Restore Data (.json)</h6>
                       <p class="small text-muted">Unggah file backup untuk memulihkan data.</p>
                       <input type="file" id="import-json-file" class="form-control form-control-sm mb-2" accept=".json">
-                      <button class="btn btn-outline-primary btn-sm w-100 btn-interactive" onclick="SettingsController.importBackup()">
+                      <button class="btn btn-outline-primary btn-sm w-100 btn-interactive" onclick="SettingsController.importBackup()" type="button">
                         Restore
                       </button>
                     </div>
@@ -1173,7 +1210,7 @@
                     <div class="border border-danger bg-danger bg-opacity-10 p-3 rounded">
                       <h6 class="fw-bold text-danger"><i class="bi bi-exclamation-triangle me-1"></i> Factory Reset</h6>
                       <p class="small text-muted mb-2">Hapus seluruh data aplikasi.</p>
-                      <button class="btn btn-danger btn-sm btn-interactive" onclick="SettingsController.resetAllData()">
+                      <button class="btn btn-danger btn-sm btn-interactive" onclick="SettingsController.resetAllData()" type="button">
                         Reset Seluruh Data
                       </button>
                     </div>
@@ -1248,22 +1285,22 @@
       <div class="modal-body p-4" id="pos-cart-col">
         <div class="d-flex align-items-center justify-content-between gap-2 mb-2 pb-2 border-bottom">
           <div class="flex-grow-1">
-            <select id="pos-customer-select" class="form-select form-select-sm fw-semibold" onchange="POSEngine.updateCustomer(this.value)">
+            <select id="pos-customer-select" class="form-select form-select-sm fw-semibold">
               <option value="Pelanggan Umum">Pelanggan Umum (Guest)</option>
             </select>
           </div>
-          <button class="btn btn-sm btn-outline-primary btn-interactive" onclick="CustomerManager.openModal()" title="Tambah Pelanggan">
+          <button class="btn btn-sm btn-outline-primary btn-interactive" onclick="CustomerManager.openModal()" title="Tambah Pelanggan" type="button">
             <i class="bi bi-person-plus"></i>
           </button>
         </div>
         <div id="pos-hold-banner" class="alert alert-warning py-1 px-2 small d-none d-flex justify-content-between align-items-center mb-2">
           <span><i class="bi bi-pause-circle me-1"></i> Ada <strong id="pos-hold-count">0</strong> transaksi ditahan</span>
-          <button class="btn btn-sm btn-warning py-0 fs-7 btn-interactive" onclick="POSEngine.openRecallModal()">Lihat (F8)</button>
+          <button class="btn btn-sm btn-warning py-0 fs-7 btn-interactive" onclick="POSEngine.openRecallModal()" type="button">Lihat (F8)</button>
         </div>
         <div id="pos-module-fields-container" class="mb-2 p-2 bg-light border border-primary border-opacity-25 rounded"></div>
         <div class="d-flex align-items-center justify-content-between mb-1">
           <h6 class="fw-bold mb-0"><i class="bi bi-bag-check text-primary me-1"></i> Daftar Item</h6>
-          <button class="btn btn-sm btn-link text-danger text-decoration-none p-0 btn-interactive" style="font-size:0.75rem;" onclick="POSEngine.voidCart()" title="Kosongkan Keranjang">
+          <button class="btn btn-sm btn-link text-danger text-decoration-none p-0 btn-interactive" style="font-size:0.75rem;" onclick="POSEngine.voidCart()" title="Kosongkan Keranjang" type="button">
             <i class="bi bi-trash me-1"></i> Kosongkan
           </button>
         </div>
@@ -1277,13 +1314,13 @@
           <div class="d-flex justify-content-between align-items-center mb-1">
             <span class="small text-muted">Diskon (Rp)</span>
             <div class="input-group input-group-sm" style="width:100px;">
-              <input type="number" id="pos-discount-input" class="form-control text-end" placeholder="0" value="0" onchange="POSEngine.updateDiscount(this.value)">
+              <input type="number" id="pos-discount-input" class="form-control text-end" placeholder="0" value="0" inputmode="numeric">
             </div>
           </div>
           <div class="d-flex justify-content-between align-items-center mb-1">
             <span class="small text-muted">Pajak (PPN %)</span>
             <div class="input-group input-group-sm" style="width:90px;">
-              <input type="number" id="pos-tax-input" class="form-control text-end" placeholder="0" value="0" onchange="POSEngine.updateTax(this.value)">
+              <input type="number" id="pos-tax-input" class="form-control text-end" placeholder="0" value="0" inputmode="numeric">
               <span class="input-group-text p-1">%</span>
             </div>
           </div>
@@ -1293,14 +1330,14 @@
           </div>
           <div class="row g-2 mt-1">
             <div class="col-4">
-              <button class="btn btn-outline-warning w-100 fw-semibold btn-interactive" onclick="POSEngine.holdOrder()">
+              <button class="btn btn-outline-warning w-100 fw-semibold btn-interactive" onclick="POSEngine.holdOrder()" type="button">
                 <i class="bi bi-pause-circle"></i> Hold
               </button>
             </div>
             <div class="col-8">
               <button class="btn pos-btn-primary-100 w-100 fw-bold btn-interactive" 
                   id="btn-bayar-pos" 
-                  onclick="POSEngine.openPaymentModal()"
+                  onclick="POSEngine.openPaymentModal()" type="button"
                   style="background-color: #000000 !important; border-color: #000000 !important; color: #ffffff !important;">
                 <i class="bi bi-cash-stack me-1"></i> BAYAR
               </button>
@@ -1329,22 +1366,22 @@
             </div>
             <label class="form-label small fw-semibold">Metode Pembayaran</label>
             <div class="d-flex flex-column gap-2 mb-3" id="payment-methods-list">
-              <button class="btn btn-outline-primary text-start fw-bold active py-2 btn-interactive" onclick="POSEngine.setPaymentMethod('Cash', this)">
+              <button class="btn btn-outline-primary text-start fw-bold active py-2 btn-interactive" onclick="POSEngine.setPaymentMethod('Cash', this)" type="button">
                 <i class="bi bi-cash me-2"></i> Tunai (Cash)
               </button>
-              <button class="btn btn-outline-primary text-start fw-bold py-2 btn-interactive" onclick="POSEngine.setPaymentMethod('QRIS / Transfer', this)">
+              <button class="btn btn-outline-primary text-start fw-bold py-2 btn-interactive" onclick="POSEngine.setPaymentMethod('QRIS / Transfer', this)" type="button">
                 <i class="bi bi-qr-code me-2"></i> QRIS / Transfer
               </button>
-              <button class="btn btn-outline-primary text-start fw-bold py-2 btn-interactive" onclick="POSEngine.setPaymentMethod('Debit / Kartu', this)">
+              <button class="btn btn-outline-primary text-start fw-bold py-2 btn-interactive" onclick="POSEngine.setPaymentMethod('Debit / Kartu', this)" type="button">
                 <i class="bi bi-credit-card me-2"></i> Kartu Debit/Kredit
               </button>
-              <button class="btn btn-outline-warning text-start fw-bold py-2 btn-interactive" onclick="POSEngine.setPaymentMethod('Piutang / Hutang', this)">
+              <button class="btn btn-outline-warning text-start fw-bold py-2 btn-interactive" onclick="POSEngine.setPaymentMethod('Piutang / Hutang', this)" type="button">
                 <i class="bi bi-journal-bookmark me-2"></i> Piutang
               </button>
             </div>
             <div class="mb-3">
               <label class="form-label small fw-semibold">Catatan (Opsional)</label>
-              <input type="text" id="pay-modal-notes" class="form-control form-control-sm" placeholder="Catatan...">
+              <input type="text" id="pay-modal-notes" class="form-control form-control-sm" placeholder="Catatan..." autocomplete="off" inputmode="text">
             </div>
           </div>
           <div class="col-md-7">
@@ -1352,7 +1389,7 @@
               <label class="form-label small fw-semibold">Uang Diterima (Rp)</label>
               <div class="input-group input-group-lg mb-3">
                 <span class="input-group-text fw-bold">Rp</span>
-                <input type="number" id="pay-cash-received" class="form-control text-end fw-bold fs-4" placeholder="0" onkeyup="POSEngine.calculateKembalian()">
+                <input type="number" id="pay-cash-received" class="form-control text-end fw-bold fs-4" placeholder="0" inputmode="numeric">
               </div>
               <div class="row g-2 mb-3" id="quick-cash-presets"></div>
               <div class="p-3 bg-light rounded d-flex align-items-center justify-content-between mb-3 border">
@@ -1374,7 +1411,7 @@
             </div>
             <button class="btn btn-dark w-100 py-3 fw-bold fs-5 mt-2 btn-interactive" 
         id="btn-submit-payment" 
-        onclick="POSEngine.processCheckout()">
+        onclick="POSEngine.processCheckout()" type="button">
   <i class="bi bi-check-circle me-1"></i> Selesaikan (Spasi)
 </button>
           </div>
@@ -1415,22 +1452,22 @@
         <h5 class="modal-title fw-bold" id="modal-product-title"><i class="bi bi-box-seam me-2 text-primary"></i>Tambah Produk</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <form onsubmit="ProductManager.saveProduct(event)">
+      <form onsubmit="ProductManager.saveProduct(event)" id="product-form">
         <div class="modal-body p-4">
           <input type="hidden" id="prod-id">
           <div class="mb-3">
             <label class="form-label fw-semibold small">Gambar Produk</label>
-            <div class="upload-area" id="product-upload-area" onclick="document.getElementById('prod-image-input').click()">
+            <div class="upload-area" id="product-upload-area">
               <i class="bi bi-cloud-upload upload-icon"></i>
               <p class="small text-muted mt-1">Klik atau seret gambar ke sini</p>
               <img id="prod-image-preview" class="d-none" alt="Preview">
-              <input type="file" id="prod-image-input" class="d-none" accept="image/*" onchange="ProductManager.handleImageUpload(this)">
+              <input type="file" id="prod-image-input" class="d-none" accept="image/*">
             </div>
           </div>
           <div class="row g-3">
             <div class="col-md-8">
               <label class="form-label fw-semibold small">Nama Produk <span class="text-danger">*</span></label>
-              <input type="text" id="prod-name" class="form-control" required placeholder="Nama produk...">
+              <input type="text" id="prod-name" class="form-control" required placeholder="Nama produk..." autocomplete="off" inputmode="text">
             </div>
             <div class="col-md-4">
               <label class="form-label fw-semibold small">Kategori</label>
@@ -1438,23 +1475,23 @@
             </div>
             <div class="col-md-6">
               <label class="form-label fw-semibold small">SKU / Kode</label>
-              <input type="text" id="prod-sku" class="form-control" placeholder="Auto / Manual">
+              <input type="text" id="prod-sku" class="form-control" placeholder="Auto / Manual" autocomplete="off" inputmode="text">
             </div>
             <div class="col-md-6">
               <label class="form-label fw-semibold small">Barcode</label>
-              <input type="text" id="prod-barcode" class="form-control" placeholder="Nomor barcode">
+              <input type="text" id="prod-barcode" class="form-control" placeholder="Nomor barcode" autocomplete="off" inputmode="numeric">
             </div>
             <div class="col-md-4">
               <label class="form-label fw-semibold small">Harga Modal (HPP)</label>
-              <input type="number" id="prod-cost" class="form-control" placeholder="0" value="0">
+              <input type="number" id="prod-cost" class="form-control" placeholder="0" value="0" inputmode="numeric">
             </div>
             <div class="col-md-4">
               <label class="form-label fw-semibold small">Harga Jual <span class="text-danger">*</span></label>
-              <input type="number" id="prod-price" class="form-control" required placeholder="0">
+              <input type="number" id="prod-price" class="form-control" required placeholder="0" inputmode="numeric">
             </div>
             <div class="col-md-4">
               <label class="form-label fw-semibold small">Stok</label>
-              <input type="number" id="prod-stock" class="form-control" placeholder="0" value="100">
+              <input type="number" id="prod-stock" class="form-control" placeholder="0" value="100" inputmode="numeric">
             </div>
           </div>
         </div>
@@ -1475,12 +1512,12 @@
         <h5 id="modal-category-title" class="modal-title fw-bold">Tambah Kategori</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <form onsubmit="CategoryManager.saveCategory(event)">
+      <form onsubmit="CategoryManager.saveCategory(event)" id="category-form">
         <div class="modal-body">
           <input type="hidden" id="cat-id">
           <div class="mb-3">
             <label class="form-label fw-semibold small">Nama Kategori <span class="text-danger">*</span></label>
-            <input type="text" id="cat-name" class="form-control" required placeholder="Contoh: Makanan, Minuman...">
+            <input type="text" id="cat-name" class="form-control" required placeholder="Contoh: Makanan, Minuman..." autocomplete="off" inputmode="text">
           </div>
         </div>
         <div class="modal-footer">
@@ -1500,20 +1537,20 @@
         <h5 class="modal-title fw-bold">Tambah Pelanggan</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <form onsubmit="CustomerManager.saveCustomer(event)">
+      <form onsubmit="CustomerManager.saveCustomer(event)" id="customer-form">
         <div class="modal-body">
           <input type="hidden" id="cust-id">
           <div class="mb-3">
             <label class="form-label fw-semibold small">Nama Lengkap <span class="text-danger">*</span></label>
-            <input type="text" id="cust-name" class="form-control" required>
+            <input type="text" id="cust-name" class="form-control" required autocomplete="off" inputmode="text">
           </div>
           <div class="mb-3">
             <label class="form-label fw-semibold small">Telepon / WA</label>
-            <input type="text" id="cust-phone" class="form-control">
+            <input type="text" id="cust-phone" class="form-control" autocomplete="off" inputmode="tel">
           </div>
           <div class="mb-3">
             <label class="form-label fw-semibold small">Email</label>
-            <input type="email" id="cust-email" class="form-control">
+            <input type="email" id="cust-email" class="form-control" autocomplete="off" inputmode="email">
           </div>
           <div class="mb-3">
             <label class="form-label fw-semibold small">Alamat</label>
@@ -1537,20 +1574,20 @@
         <h5 class="modal-title fw-bold">Tambah Supplier</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <form onsubmit="SupplierManager.saveSupplier(event)">
+      <form onsubmit="SupplierManager.saveSupplier(event)" id="supplier-form">
         <div class="modal-body">
           <input type="hidden" id="sup-id">
           <div class="mb-3">
             <label class="form-label fw-semibold small">Nama Perusahaan <span class="text-danger">*</span></label>
-            <input type="text" id="sup-name" class="form-control" required>
+            <input type="text" id="sup-name" class="form-control" required autocomplete="off" inputmode="text">
           </div>
           <div class="mb-3">
             <label class="form-label fw-semibold small">Sales Kontak</label>
-            <input type="text" id="sup-contact" class="form-control">
+            <input type="text" id="sup-contact" class="form-control" autocomplete="off" inputmode="text">
           </div>
           <div class="mb-3">
             <label class="form-label fw-semibold small">Telepon / WA</label>
-            <input type="text" id="sup-phone" class="form-control">
+            <input type="text" id="sup-phone" class="form-control" autocomplete="off" inputmode="tel">
           </div>
           <div class="mb-3">
             <label class="form-label fw-semibold small">Alamat</label>
@@ -1574,7 +1611,7 @@
         <h5 class="modal-title fw-bold">Catat Pengeluaran</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <form onsubmit="ExpenseManager.saveExpense(event)">
+      <form onsubmit="ExpenseManager.saveExpense(event)" id="expense-form">
         <div class="modal-body">
           <div class="mb-3">
             <label class="form-label fw-semibold small">Kategori</label>
@@ -1588,11 +1625,11 @@
           </div>
           <div class="mb-3">
             <label class="form-label fw-semibold small">Nominal (Rp) <span class="text-danger">*</span></label>
-            <input type="number" id="exp-amount" class="form-control" required>
+            <input type="number" id="exp-amount" class="form-control" required inputmode="numeric">
           </div>
           <div class="mb-3">
             <label class="form-label fw-semibold small">Keterangan</label>
-            <input type="text" id="exp-note" class="form-control">
+            <input type="text" id="exp-note" class="form-control" autocomplete="off" inputmode="text">
           </div>
         </div>
         <div class="modal-footer">
@@ -1658,13 +1695,6 @@ function playClickSound() {
     osc.stop(ctx.currentTime + 0.06);
   } catch (_) {}
 }
-
-document.addEventListener('click', function(e) {
-  const btn = e.target.closest('.btn-interactive');
-  if (btn) {
-    playClickSound();
-  }
-});
 
 // ===== STATE =====
 const BUSINESS_MODULES = [
@@ -1890,7 +1920,7 @@ const ModuleManager = {
           f.options.forEach(opt => { html += `<option value="${opt}" ${existingVal === opt ? 'selected' : ''}>${opt}</option>`; });
           html += `</select>`;
         } else {
-          html += `<input type="${f.type}" class="form-control form-control-sm" placeholder="${f.placeholder || ''}" value="${existingVal}" onchange="ModuleManager.updateCartModuleData('${f.id}', this.value)" step="${f.step || 'any'}">`;
+          html += `<input type="${f.type}" class="form-control form-control-sm" placeholder="${f.placeholder || ''}" value="${existingVal}" onchange="ModuleManager.updateCartModuleData('${f.id}', this.value)" step="${f.step || 'any'}" autocomplete="off">`;
         }
         html += `</div>`;
       });
@@ -1941,7 +1971,15 @@ const ThemeEngine = {
 // ===== BRANDING =====
 const BrandingController = {
   DEFAULT_PRIMARY: '#2563eb',
-  init() { document.getElementById('brand-smart-color').value = AppState.theme.primary; this.applyLogo(); this.updatePreviewColors(); },
+  init() { 
+    document.getElementById('brand-smart-color').value = AppState.theme.primary; 
+    this.applyLogo(); 
+    this.updatePreviewColors();
+    // Fix untuk upload logo di Android
+    document.getElementById('branding-logo-input').addEventListener('change', function() {
+      BrandingController.handleLogoUpload(this);
+    });
+  },
   handleLogoUpload(input) {
     const file = input.files[0];
     if (!file) return;
@@ -2047,7 +2085,6 @@ const UIController = {
   },
   applyRolePermissions() {
     const role = AppState.currentUser.role;
-    document.getElementById('user-role-badge').textContent = role;
     const adminEls = document.querySelectorAll('.admin-only');
     adminEls.forEach(el => el.style.display = role === 'Admin' ? '' : 'none');
     this.renderSidebar();
@@ -2057,7 +2094,7 @@ const UIController = {
   renderSidebar() {
     const role = AppState.currentUser.role;
     let menus = [
-      { id: 'pos', icon: 'bi-calculator', label: 'POS Kasir' },
+      { id: 'pos', icon: 'bi-calculator', label: 'Kasir' },
       { id: 'dashboard', icon: 'bi-grid-1x2', label: 'Dashboard' },
       { id: 'produk', icon: 'bi-box-seam', label: 'Produk & Stok' },
       { id: 'kategori', icon: 'bi-tags', label: 'Kategori' },
@@ -2147,7 +2184,7 @@ const RouterEngine = {
     let mobileNav = document.querySelector(`.mobile-bottom-nav .nav-item-btn[onclick*="${tabId}"]`);
     if(mobileNav) mobileNav.classList.add('active');
     
-    const titles = { pos: 'POS Kasir', dashboard: 'Dashboard', produk: 'Produk & Stok', kategori: 'Kategori', pelanggan: 'Pelanggan', supplier: 'Supplier', pengeluaran: 'Pengeluaran', laporan: 'Laporan', store: 'App Store', settings: 'Pengaturan' };
+    const titles = { pos: 'Kasir', dashboard: 'Dashboard', produk: 'Produk & Stok', kategori: 'Kategori', pelanggan: 'Pelanggan', supplier: 'Supplier', pengeluaran: 'Pengeluaran', laporan: 'Laporan', store: 'App Store', settings: 'Pengaturan' };
     document.getElementById('page-title').textContent = titles[tabId] || 'Kasir Genius';
     
     if(window.innerWidth < 992) document.getElementById('appSidebar').classList.remove('show');
@@ -2402,10 +2439,65 @@ const POSEngine = {
     this.renderCart();
     this.updateHoldCount();
     ModuleManager.adaptPosInterface();
-    // Re-render hold orders if coming back
-    if (AppState.heldOrders && AppState.heldOrders.length > 0) {
-      // Just update the UI
-    }
+    
+    // Setup input listeners for Android compatibility
+    const searchInput = document.getElementById('pos-search-input');
+    const barcodeInput = document.getElementById('pos-barcode-input');
+    const discountInput = document.getElementById('pos-discount-input');
+    const taxInput = document.getElementById('pos-tax-input');
+    
+    // Use 'input' event for real-time updates (more reliable on Android)
+    searchInput.removeEventListener('input', this._searchHandler);
+    this._searchHandler = (e) => {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => { 
+        this.searchQuery = e.target.value.toLowerCase(); 
+        this.renderProducts(); 
+      }, 300);
+    };
+    searchInput.addEventListener('input', this._searchHandler);
+    
+    // Barcode: use 'keydown' instead of 'keypress' (more reliable)
+    barcodeInput.removeEventListener('keydown', this._barcodeHandler);
+    this._barcodeHandler = (e) => {
+      if(e.key === 'Enter') {
+        const code = e.target.value.trim();
+        if(code) {
+          this.processBarcode(code);
+          e.target.value = '';
+        }
+      }
+    };
+    barcodeInput.addEventListener('keydown', this._barcodeHandler);
+    
+    // Discount and Tax: use 'input' for real-time updates
+    discountInput.removeEventListener('input', this._discountHandler);
+    this._discountHandler = (e) => {
+      this.updateDiscount(e.target.value);
+    };
+    discountInput.addEventListener('input', this._discountHandler);
+    
+    taxInput.removeEventListener('input', this._taxHandler);
+    this._taxHandler = (e) => {
+      this.updateTax(e.target.value);
+    };
+    taxInput.addEventListener('input', this._taxHandler);
+    
+    // Customer select
+    const customerSelect = document.getElementById('pos-customer-select');
+    customerSelect.removeEventListener('change', this._customerHandler);
+    this._customerHandler = (e) => {
+      this.updateCustomer(e.target.value);
+    };
+    customerSelect.addEventListener('change', this._customerHandler);
+    
+    // Payment received input
+    const payReceived = document.getElementById('pay-cash-received');
+    payReceived.removeEventListener('input', this._payReceivedHandler);
+    this._payReceivedHandler = (e) => {
+      this.calculateKembalian();
+    };
+    payReceived.addEventListener('input', this._payReceivedHandler);
   },
   
   updateCategoryPills() {
@@ -2418,17 +2510,10 @@ const POSEngine = {
   },
   setCategory(id) { this.activeCategory = id; this.updateCategoryPills(); this.renderProducts(); },
   handleSearchDebounced(e) {
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(() => { this.searchQuery = e.target.value.toLowerCase(); this.renderProducts(); }, 200);
+    // Now handled by input event listener
   },
   handleBarcodeScan(e) {
-      if(e.key === 'Enter') {
-          const code = e.target.value.trim();
-          if(code) {
-              this.processBarcode(code);
-          }
-          e.target.value = '';
-      }
+    // Now handled by keydown event listener
   },
   processBarcode(code) {
        const product = AppState.products.find(p => p.barcode === code || p.sku === code);
@@ -2456,7 +2541,7 @@ const POSEngine = {
       const defaultImg = `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}&background=e9edf2&color=64748b&size=200&font-size=0.3`;
       return `
         <div class="pos-products-col" id="prod-col-${p.id}">
-          <div class="product-card ${isOut ? 'opacity-50' : ''} btn-interactive" onclick="${isOut ? '' : `POSEngine.addToCart('${p.id}', this)`}">
+          <div class="product-card ${isOut ? 'opacity-50' : ''} btn-interactive" onclick="${isOut ? '' : `POSEngine.addToCart('${p.id}', this)`}" data-product-id="${p.id}">
             <img src="${p.image || defaultImg}" alt="${p.name}" class="product-img" loading="lazy">
             ${isOut ? '<span class="badge-out">Habis</span>' : ''}
             <div class="product-info">
@@ -2484,14 +2569,18 @@ const POSEngine = {
     
     StorageService.save();
     
+    // Use a more reliable animation method for Android
     if (cardEl && !fromBarcode) {
-         cardEl.classList.add('clicked');
-         setTimeout(() => {
-             this.renderCart(true);
-             cardEl.classList.remove('clicked');
-         }, 300);
+      cardEl.style.transition = 'opacity 0.2s, transform 0.2s';
+      cardEl.style.opacity = '0.3';
+      cardEl.style.transform = 'scale(0.95)';
+      setTimeout(() => {
+        this.renderCart(true);
+        cardEl.style.opacity = '';
+        cardEl.style.transform = '';
+      }, 250);
     } else {
-         this.renderCart(true);
+      this.renderCart(true);
     }
   },
   
@@ -2552,9 +2641,9 @@ const POSEngine = {
           <div class="d-flex justify-content-between align-items-center">
             <span class="text-muted small">${UIController.formatRp(item.price)}/item</span>
             <div class="input-group input-group-sm" style="width: 85px;">
-              <button class="btn btn-outline-secondary px-2 btn-interactive" onclick="POSEngine.updateQty('${item.id}', -1)"><i class="bi bi-dash"></i></button>
+              <button class="btn btn-outline-secondary px-2 btn-interactive" onclick="POSEngine.updateQty('${item.id}', -1)" type="button"><i class="bi bi-dash"></i></button>
               <input type="text" class="form-control text-center px-1 fw-bold" value="${item.qty}" readonly>
-              <button class="btn btn-outline-secondary px-2 btn-interactive" onclick="POSEngine.updateQty('${item.id}', 1)"><i class="bi bi-plus"></i></button>
+              <button class="btn btn-outline-secondary px-2 btn-interactive" onclick="POSEngine.updateQty('${item.id}', 1)" type="button"><i class="bi bi-plus"></i></button>
             </div>
           </div>
         </div>
@@ -2658,8 +2747,8 @@ const POSEngine = {
             <small class="text-muted"><i class="bi bi-clock me-1"></i>${h.time} • ${h.cart.items.length} item</small>
           </div>
           <div class="d-flex gap-2">
-            <button class="btn btn-sm btn-outline-danger btn-interactive" onclick="POSEngine.deleteHold(${i})"><i class="bi bi-trash"></i></button>
-            <button class="btn btn-sm btn-primary btn-interactive" onclick="POSEngine.recallHold(${i})">Panggil</button>
+            <button class="btn btn-sm btn-outline-danger btn-interactive" onclick="POSEngine.deleteHold(${i})" type="button"><i class="bi bi-trash"></i></button>
+            <button class="btn btn-sm btn-primary btn-interactive" onclick="POSEngine.recallHold(${i})" type="button">Panggil</button>
           </div>
         </div>
       `).join('');
@@ -2778,7 +2867,7 @@ const POSEngine = {
     
     container.innerHTML = unique.map(p => `
       <div class="col-6">
-        <button class="btn btn-outline-primary w-100 fw-semibold btn-interactive" onclick="POSEngine.setQuickCash(${p})">${p === total ? 'Uang Pas' : UIController.formatRp(p)}</button>
+        <button class="btn btn-outline-primary w-100 fw-semibold btn-interactive" onclick="POSEngine.setQuickCash(${p})" type="button">${p === total ? 'Uang Pas' : UIController.formatRp(p)}</button>
       </div>
     `).join('');
   },
@@ -3085,8 +3174,8 @@ const ProductManager = {
           <td class="fw-bold text-primary">${UIController.formatRp(p.price)}</td>
           <td><span class="badge ${p.stock > 10 ? 'bg-success' : 'bg-danger'}">${p.stock}</span></td>
           <td class="text-end">
-            <button class="btn btn-sm btn-outline-primary me-1 btn-interactive" onclick="ProductManager.openModal('${p.id}')"><i class="bi bi-pencil"></i></button>
-            <button class="btn btn-sm btn-outline-danger btn-interactive" onclick="ProductManager.deleteProduct('${p.id}')"><i class="bi bi-trash"></i></button>
+            <button class="btn btn-sm btn-outline-primary me-1 btn-interactive" onclick="ProductManager.openModal('${p.id}')" type="button"><i class="bi bi-pencil"></i></button>
+            <button class="btn btn-sm btn-outline-danger btn-interactive" onclick="ProductManager.deleteProduct('${p.id}')" type="button"><i class="bi bi-trash"></i></button>
           </td>
         </tr>
       `;
@@ -3112,6 +3201,21 @@ document.addEventListener('DOMContentLoaded', () => {
       const dt = e.dataTransfer; const files = dt.files;
       if(files.length) { document.getElementById('prod-image-input').files = files; ProductManager.handleImageUpload(document.getElementById('prod-image-input')); }
     }, false);
+    
+    // Fix untuk upload di Android - klik pada area upload
+    uploadArea.addEventListener('click', function(e) {
+      // Mencegah event bubbling agar tidak terjadi double trigger
+      e.stopPropagation();
+      document.getElementById('prod-image-input').click();
+    });
+  }
+  
+  // Fix untuk upload logo di Android
+  const logoInput = document.getElementById('branding-logo-input');
+  if(logoInput) {
+    logoInput.addEventListener('change', function() {
+      BrandingController.handleLogoUpload(this);
+    });
   }
   
   // Online/Offline detection
@@ -3181,8 +3285,8 @@ const CategoryManager = {
             <div class="d-flex justify-content-between align-items-center">
               <small class="text-muted">${count} Produk</small>
               <div>
-                <button class="btn btn-sm btn-link text-primary p-1 btn-interactive" onclick="CategoryManager.openModal('${c.id}')"><i class="bi bi-pencil"></i></button>
-                <button class="btn btn-sm btn-link text-danger p-1 btn-interactive" onclick="CategoryManager.deleteCategory('${c.id}')"><i class="bi bi-trash"></i></button>
+                <button class="btn btn-sm btn-link text-primary p-1 btn-interactive" onclick="CategoryManager.openModal('${c.id}')" type="button"><i class="bi bi-pencil"></i></button>
+                <button class="btn btn-sm btn-link text-danger p-1 btn-interactive" onclick="CategoryManager.deleteCategory('${c.id}')" type="button"><i class="bi bi-trash"></i></button>
               </div>
             </div>
           </div>
@@ -3243,8 +3347,8 @@ const CustomerManager = {
         <td class="fw-semibold"><div class="d-flex align-items-center gap-2"><div class="avatar bg-light rounded-circle text-center pt-1" style="width:32px;height:32px;"><i class="bi bi-person text-secondary"></i></div>${c.name}</div></td>
         <td>${c.phone || '-'}</td><td>${c.email || '-'}</td><td>${c.address || '-'}</td>
         <td class="text-end">
-          <button class="btn btn-sm btn-outline-primary me-1 btn-interactive" onclick="CustomerManager.openModal('${c.id}')"><i class="bi bi-pencil"></i></button>
-          ${c.name !== 'Pelanggan Umum' ? `<button class="btn btn-sm btn-outline-danger btn-interactive" onclick="CustomerManager.deleteCustomer('${c.id}')"><i class="bi bi-trash"></i></button>` : ''}
+          <button class="btn btn-sm btn-outline-primary me-1 btn-interactive" onclick="CustomerManager.openModal('${c.id}')" type="button"><i class="bi bi-pencil"></i></button>
+          ${c.name !== 'Pelanggan Umum' ? `<button class="btn btn-sm btn-outline-danger btn-interactive" onclick="CustomerManager.deleteCustomer('${c.id}')" type="button"><i class="bi bi-trash"></i></button>` : ''}
         </td>
       </tr>
     `).join('');
@@ -3295,8 +3399,8 @@ const SupplierManager = {
     tbody.innerHTML = AppState.suppliers.map(s => `
       <tr><td class="fw-semibold">${s.name}</td><td>${s.contact || '-'}</td><td>${s.phone || '-'}</td><td>${s.address || '-'}</td>
       <td class="text-end">
-        <button class="btn btn-sm btn-outline-primary me-1 btn-interactive" onclick="SupplierManager.openModal('${s.id}')"><i class="bi bi-pencil"></i></button>
-        <button class="btn btn-sm btn-outline-danger btn-interactive" onclick="SupplierManager.deleteSupplier('${s.id}')"><i class="bi bi-trash"></i></button>
+        <button class="btn btn-sm btn-outline-primary me-1 btn-interactive" onclick="SupplierManager.openModal('${s.id}')" type="button"><i class="bi bi-pencil"></i></button>
+        <button class="btn btn-sm btn-outline-danger btn-interactive" onclick="SupplierManager.deleteSupplier('${s.id}')" type="button"><i class="bi bi-trash"></i></button>
       </td></tr>
     `).join('');
   }
@@ -3338,7 +3442,7 @@ const ExpenseManager = {
         <td>${new Date(ex.date).toLocaleDateString('id-ID')}</td>
         <td><span class="badge bg-secondary">${ex.category}</span></td>
         <td>${ex.note || '-'}</td><td class="fw-bold text-danger">${UIController.formatRp(ex.amount)}</td>
-        <td class="text-end"><button class="btn btn-sm btn-outline-danger btn-interactive" onclick="ExpenseManager.deleteExpense('${ex.id}')"><i class="bi bi-trash"></i></button></td>
+        <td class="text-end"><button class="btn btn-sm btn-outline-danger btn-interactive" onclick="ExpenseManager.deleteExpense('${ex.id}')" type="button"><i class="bi bi-trash"></i></button></td>
       </tr>
     `).join('');
   }
@@ -3371,8 +3475,8 @@ const ReportEngine = {
           <td>${s.paymentMethod === 'Piutang / Hutang' ? '<span class="badge bg-warning">Piutang</span>' : s.paymentMethod}</td>
           <td class="fw-bold">${UIController.formatRp(s.grandTotal)}</td>
           <td class="text-end">
-            <button class="btn btn-sm btn-light border btn-interactive" onclick="PrintEngine.generateReceiptHTML(AppState.sales[${i}]); new bootstrap.Modal(document.getElementById('modal-receipt')).show();" title="Struk"><i class="bi bi-printer"></i></button>
-            <button class="btn btn-sm btn-outline-danger btn-interactive admin-only" onclick="ReportEngine.deleteTransaction('${s.id}')" title="Hapus"><i class="bi bi-trash"></i></button>
+            <button class="btn btn-sm btn-light border btn-interactive" onclick="PrintEngine.generateReceiptHTML(AppState.sales[${i}]); new bootstrap.Modal(document.getElementById('modal-receipt')).show();" title="Struk" type="button"><i class="bi bi-printer"></i></button>
+            <button class="btn btn-sm btn-outline-danger btn-interactive admin-only" onclick="ReportEngine.deleteTransaction('${s.id}')" title="Hapus" type="button"><i class="bi bi-trash"></i></button>
           </td>
         </tr>
       `;
@@ -3391,7 +3495,7 @@ const ReportEngine = {
     AppState.sales.forEach(s => {
       const d = new Date(s.date);
       const mod = BUSINESS_MODULES.find(m => m.id === s.moduleId);
-      csv += `${s.id},${d.toLocaleDateString('id-ID')},${d.toLocaleTimeString('id-ID')},${s.cashir},"${s.customer}","${mod?mod.name:'-'}","${s.paymentMethod}",${s.subtotal},${s.discount},${s.taxRate},${s.grandTotal},${s.profit || 0},"${s.notes || ''}"\n`;
+      csv += `${s.id},${d.toLocaleDateString('id-ID')},${d.toLocaleTimeString('id-ID')},${s.cashier},"${s.customer}","${mod?mod.name:'-'}","${s.paymentMethod}",${s.subtotal},${s.discount},${s.taxRate},${s.grandTotal},${s.profit || 0},"${s.notes || ''}"\n`;
     });
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
@@ -3571,13 +3675,6 @@ window.onload = function() {
     }
   }
 };
-
-// PWA Service Worker
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    // navigator.serviceWorker.register('/sw.js').then(...);
-  });
-}
 </script>
 
 </body>
