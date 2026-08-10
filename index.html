@@ -1367,13 +1367,13 @@
             <label class="form-label small fw-semibold">Metode Pembayaran</label>
             <div class="d-flex flex-wrap gap-2 mb-3" id="payment-methods-list">
               <button class="btn btn-outline-primary text-start fw-bold active py-2 btn-interactive" onclick="POSEngine.setPaymentMethod('Cash', this)" type="button">
-                <i class="bi bi-cash me-2"></i> Tunai (Cash)
+                <i class="bi bi-cash me-2"></i> Cash
               </button>
               <button class="btn btn-outline-primary text-start fw-bold py-2 btn-interactive" onclick="POSEngine.setPaymentMethod('QRIS / Transfer', this)" type="button">
-                <i class="bi bi-qr-code me-2"></i> QRIS / Transfer
+                <i class="bi bi-qr-code me-2"></i> QRIS/Transfer
               </button>
               <button class="btn btn-outline-primary text-start fw-bold py-2 btn-interactive" onclick="POSEngine.setPaymentMethod('Debit / Kartu', this)" type="button">
-                <i class="bi bi-credit-card me-2"></i> Kartu Debit/Kredit
+                <i class="bi bi-credit-card me-2"></i> Debit/Kredit
               </button>
               <button class="btn btn-outline-warning text-start fw-bold py-2 btn-interactive" onclick="POSEngine.setPaymentMethod('Piutang / Hutang', this)" type="button">
                 <i class="bi bi-journal-bookmark me-2"></i> Piutang
@@ -2202,6 +2202,87 @@ const RouterEngine = {
     else if(tabId === 'laporan') { ReportEngine.renderReports(); }
     else if(tabId === 'store') { ModuleManager.renderStore(); }
     else if(tabId === 'settings') { SettingsController.init(); }
+  }
+};
+
+// ===== IMAGE COMPRESSOR =====
+const ImageCompressor = {
+  // Kompres gambar ke 400x400 dengan kualitas yang baik
+  compress(file, maxWidth = 400, maxHeight = 400, quality = 0.7) {
+    return new Promise((resolve, reject) => {
+      // Cek apakah file gambar
+      if (!file || !file.type.startsWith('image/')) {
+        reject(new Error('File bukan gambar'));
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          // Hitung dimensi baru dengan mempertahankan rasio aspek
+          let width = img.width;
+          let height = img.height;
+          
+          // Jika gambar sudah <= 400x400, gunakan ukuran asli
+          if (width <= maxWidth && height <= maxHeight) {
+            // Tapi tetap kompres kualitasnya
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // Gunakan quality yang lebih baik untuk gambar kecil
+            const outputQuality = Math.min(0.9, quality + 0.1);
+            const compressedDataUrl = canvas.toDataURL('image/jpeg', outputQuality);
+            resolve(compressedDataUrl);
+            return;
+          }
+          
+          // Hitung rasio untuk resize
+          const ratio = Math.min(maxWidth / width, maxHeight / height);
+          const newWidth = Math.round(width * ratio);
+          const newHeight = Math.round(height * ratio);
+          
+          // Buat canvas untuk kompresi
+          const canvas = document.createElement('canvas');
+          canvas.width = newWidth;
+          canvas.height = newHeight;
+          const ctx = canvas.getContext('2d');
+          
+          // Enable anti-aliasing
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          
+          // Gambar dengan ukuran baru
+          ctx.drawImage(img, 0, 0, newWidth, newHeight);
+          
+          // Kompres ke JPEG dengan kualitas yang ditentukan
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+          
+          // Verifikasi hasil
+          if (compressedDataUrl.length > 500000) {
+            // Jika masih besar > 500KB, kompres lebih agresif
+            const lowerQuality = Math.max(0.3, quality - 0.2);
+            const dataUrl2 = canvas.toDataURL('image/jpeg', lowerQuality);
+            resolve(dataUrl2);
+          } else {
+            resolve(compressedDataUrl);
+          }
+        };
+        img.onerror = function() {
+          reject(new Error('Gagal memuat gambar'));
+        };
+        img.src = e.target.result;
+      };
+      reader.onerror = function() {
+        reject(new Error('Gagal membaca file'));
+      };
+      reader.readAsDataURL(file);
+    });
   }
 };
 
@@ -3068,35 +3149,40 @@ const ProductManager = {
     new bootstrap.Modal(document.getElementById('modal-product')).show();
   },
   
-  handleImageUpload(input) {
+  async handleImageUpload(input) {
     const file = input.files[0];
     if (!file) return;
-    if (!file.type.startsWith('image/')) { showToast('Hanya file gambar!', 'error'); return; }
+    if (!file.type.startsWith('image/')) { 
+      showToast('Hanya file gambar!', 'error'); 
+      input.value = '';
+      return; 
+    }
     
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const MAX_WIDTH = 400; const MAX_HEIGHT = 400;
-        let width = img.width; let height = img.height;
-        if (width > height) { if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; } }
-        else { if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; } }
-        canvas.width = width; canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, width, height);
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
-        
-        const imgPreview = document.getElementById('prod-image-preview');
-        imgPreview.src = dataUrl;
-        imgPreview.dataset.base64 = dataUrl;
-        imgPreview.classList.remove('d-none');
-        document.querySelector('.upload-icon').classList.add('d-none');
-        document.querySelector('.upload-area p').classList.add('d-none');
-      };
-      img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
+    // Cek ukuran file - jika > 2MB, beri peringatan tapi tetap proses
+    if (file.size > 2 * 1024 * 1024) {
+      showToast('Mengompres gambar besar...', 'info');
+    }
+    
+    try {
+      // Kompres gambar ke 400x400
+      const compressedDataUrl = await ImageCompressor.compress(file, 400, 400, 0.75);
+      
+      const imgPreview = document.getElementById('prod-image-preview');
+      imgPreview.src = compressedDataUrl;
+      imgPreview.dataset.base64 = compressedDataUrl;
+      imgPreview.classList.remove('d-none');
+      
+      const uploadIcon = document.querySelector('.upload-icon');
+      const uploadText = document.querySelector('.upload-area p');
+      if (uploadIcon) uploadIcon.classList.add('d-none');
+      if (uploadText) uploadText.classList.add('d-none');
+      
+      showToast('Gambar berhasil diunggah (400x400)', 'success');
+    } catch (error) {
+      console.error('Error kompres gambar:', error);
+      showToast('Gagal memproses gambar. Coba lagi.', 'error');
+      input.value = '';
+    }
   },
   
   saveProduct(e) {
@@ -3107,7 +3193,7 @@ const ProductManager = {
     const name = document.getElementById('prod-name').value;
     const imgPreview = document.getElementById('prod-image-preview');
     let imageBase64 = imgPreview.dataset.base64 || '';
-    if (!imageBase64 && imgPreview.src && !imgPreview.src.endsWith(window.location.host + '/')) {
+    if (!imageBase64 && imgPreview.src && !imgPreview.src.includes('data:image')) {
       imageBase64 = imgPreview.src;
     }
 
@@ -3164,7 +3250,7 @@ const ProductManager = {
         <tr>
           <td>
             <div class="d-flex align-items-center gap-2">
-              <img src="${p.image || defaultImg}" style="width:36px;height:36px;border-radius:6px;object-fit:cover;">
+              <img src="${p.image || defaultImg}" style="width:36px;height:36px;border-radius:6px;object-fit:cover;" loading="lazy">
               <span class="fw-semibold">${p.name}</span>
             </div>
           </td>
@@ -3183,39 +3269,85 @@ const ProductManager = {
   }
 };
 
-// Drag & Drop Handlers
+// ===== Drag & Drop & Upload Handlers =====
 document.addEventListener('DOMContentLoaded', () => {
+  // Setup product upload area
   const uploadArea = document.getElementById('product-upload-area');
-  if(uploadArea) {
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-      uploadArea.addEventListener(eventName, preventDefaults, false);
-    });
-    function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
-    ['dragenter', 'dragover'].forEach(eventName => {
-      uploadArea.addEventListener(eventName, () => uploadArea.classList.add('dragover'), false);
-    });
-    ['dragleave', 'drop'].forEach(eventName => {
-      uploadArea.addEventListener(eventName, () => uploadArea.classList.remove('dragover'), false);
-    });
-    uploadArea.addEventListener('drop', (e) => {
-      const dt = e.dataTransfer; const files = dt.files;
-      if(files.length) { document.getElementById('prod-image-input').files = files; ProductManager.handleImageUpload(document.getElementById('prod-image-input')); }
+  const fileInput = document.getElementById('prod-image-input');
+  
+  if(uploadArea && fileInput) {
+    // Click handler
+    uploadArea.addEventListener('click', function(e) {
+      e.stopPropagation();
+      fileInput.click();
     }, false);
     
-    // Fix untuk upload di Android - klik pada area upload
-    uploadArea.addEventListener('click', function(e) {
-      // Mencegah event bubbling agar tidak terjadi double trigger
-      e.stopPropagation();
-      document.getElementById('prod-image-input').click();
+    // File input change handler
+    fileInput.addEventListener('change', function() {
+      ProductManager.handleImageUpload(this);
+    }, false);
+    
+    // Drag and drop events
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      uploadArea.addEventListener(eventName, function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }, false);
     });
+    
+    ['dragenter', 'dragover'].forEach(eventName => {
+      uploadArea.addEventListener(eventName, function() {
+        this.classList.add('dragover');
+      }, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+      uploadArea.addEventListener(eventName, function() {
+        this.classList.remove('dragover');
+      }, false);
+    });
+    
+    uploadArea.addEventListener('drop', function(e) {
+      const files = e.dataTransfer.files;
+      if(files.length > 0) {
+        fileInput.files = files;
+        ProductManager.handleImageUpload(fileInput);
+      }
+    }, false);
   }
   
-  // Fix untuk upload logo di Android
+  // Logo upload handler
   const logoInput = document.getElementById('branding-logo-input');
   if(logoInput) {
     logoInput.addEventListener('change', function() {
-      BrandingController.handleLogoUpload(this);
-    });
+      const file = this.files[0];
+      if (!file) return;
+      if (!file.type.startsWith('image/')) { 
+        showToast('File harus gambar.', 'error'); 
+        this.value = '';
+        return;
+      }
+      
+      // Kompres logo juga
+      ImageCompressor.compress(file, 200, 200, 0.8)
+        .then(compressed => {
+          AppState.settings.logoUrl = compressed;
+          StorageService.save();
+          BrandingController.applyLogo();
+          showToast('Logo diperbarui!');
+        })
+        .catch(() => {
+          // Fallback: baca langsung
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            AppState.settings.logoUrl = e.target.result;
+            StorageService.save();
+            BrandingController.applyLogo();
+            showToast('Logo diperbarui!');
+          };
+          reader.readAsDataURL(file);
+        });
+    }, false);
   }
   
   // Online/Offline detection
@@ -3495,7 +3627,7 @@ const ReportEngine = {
     AppState.sales.forEach(s => {
       const d = new Date(s.date);
       const mod = BUSINESS_MODULES.find(m => m.id === s.moduleId);
-      csv += `${s.id},${d.toLocaleDateString('id-ID')},${d.toLocaleTimeString('id-ID')},${s.cashier},"${s.customer}","${mod?mod.name:'-'}","${s.paymentMethod}",${s.subtotal},${s.discount},${s.taxRate},${s.grandTotal},${s.profit || 0},"${s.notes || ''}"\n`;
+      csv += `${s.id},${d.toLocaleDateString('id-ID')},${d.toLocaleTimeString('id-ID')},${s.cashir},"${s.customer}","${mod?mod.name:'-'}","${s.paymentMethod}",${s.subtotal},${s.discount},${s.taxRate},${s.grandTotal},${s.profit || 0},"${s.notes || ''}"\n`;
     });
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
