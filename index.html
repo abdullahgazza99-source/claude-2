@@ -590,6 +590,98 @@
 </head>
 <body>
 
+  <!-- UI Popup Install -->
+<div id="pwa-install-popup" style="
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ffffff;
+  color: #333333;
+  padding: 16px 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  z-index: 9999;
+  align-items: center;
+  gap: 12px;
+  font-family: sans-serif;
+  width: 90%;
+  max-width: 400px;
+  justify-content: space-between;
+">
+  <div>
+    <strong style="display: block; font-size: 14px;">Install Aplikasi</strong>
+    <span style="font-size: 12px; color: #666;">Pasang seakarang untuk akses lebih cepat.</span>
+  </div>
+  <div style="display: flex; gap: 8px; align-items: center;">
+    <button id="pwa-install-btn" style="
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 12px;
+    ">Install Sekarang</button>
+    <button id="pwa-close-btn" style="
+      background: transparent;
+      border: none;
+      color: #999;
+      cursor: pointer;
+      font-size: 16px;
+      padding: 4px;
+    ">&times;</button>
+  </div>
+</div>
+
+<!-- Logika JavaScript -->
+<script>
+  let deferredPrompt;
+  const installPopup = document.getElementById('pwa-install-popup');
+  const installBtn = document.getElementById('pwa-install-btn');
+  const closeBtn = document.getElementById('pwa-close-btn');
+
+  // Register Service Worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js')
+      .catch((err) => console.log('Service Worker Registrasi Gagal:', err));
+  }
+
+  // Tangkap trigger install dari browser
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    // Tampilkan popup
+    installPopup.style.display = 'flex';
+  });
+
+  // Event klik tombol Install Sekarang
+  installBtn.addEventListener('click', async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        console.log('Pengguna menyetujui instalasi');
+      }
+      deferredPrompt = null;
+      installPopup.style.display = 'none';
+    }
+  });
+
+  // Event tutup popup
+  closeBtn.addEventListener('click', () => {
+    installPopup.style.display = 'none';
+  });
+
+  // Sembunyikan jika aplikasi sudah terinstall
+  window.addEventListener('appinstalled', () => {
+    installPopup.style.display = 'none';
+    deferredPrompt = null;
+  });
+</script>
+
 <div class="toast-container-floating" id="toast-container"></div>
 
 <!-- Offline Indicator -->
